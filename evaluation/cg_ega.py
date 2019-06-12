@@ -1,1 +1,0 @@
-""" define the R-EGA, P-EGA and CG-EGA objects """
