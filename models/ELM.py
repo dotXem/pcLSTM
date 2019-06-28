@@ -5,18 +5,27 @@ from sklearn.linear_model import Ridge
 from tools.timeit import timeit
 
 params = {
-    "neurons": 100000,
-    "l2": 100,
+    "neurons": 1e5,
+    "l2": 5e2,
 }
 
+
 class ELM():
-    def __init__(self, neurons, l2):
-        self.neurons = neurons
-        self.l2 = l2
+    """
+    The ELM model is based on Extreme Learning Machine by Huang et al., 2004 .
+    Parameters:
+        - neurons: number of neurons in the single hidden layer
+        - l2: L2 regularization factor
+    """
+
+    def __init__(self, params):
+        self.neurons = params["neurons"]
+        self.l2 = params["l2"]
 
     @timeit
     def fit(self, x, y):
-        y = y["y_ph"]
+        x = x.values
+        y = y["y_ph"].values
 
         n_inputs = int(np.shape(x)[1])
 
@@ -34,6 +43,7 @@ class ELM():
 
     @timeit
     def predict(self, x, y):
+        x = x.values
         y_true = y["y_ph"].values
 
         # compute the output of the hidden layer
@@ -43,5 +53,3 @@ class ELM():
         y_pred = self.model.predict(H)
 
         return y_true, y_pred
-
-

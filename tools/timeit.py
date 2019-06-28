@@ -1,6 +1,11 @@
 import time
 
 def timeit(method):
+    """
+        Decorator function that print the time a function took to complete.
+        :param method: function
+        :return: time elapsed
+    """
     def timed(*args, **kw):
         ts = time.time()
         result = method(*args, **kw)

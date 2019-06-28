@@ -1,33 +1,28 @@
 from misc import day_len
 import numpy as np
 import pandas as pd
-from tools.timeit import timeit
 
 
-# @timeit
-def reshape_day(data, params):
-    ph = params["ph"]
-    freq = params["freq"]
-    hist = params["hist"]
+def reshape_day(data, ph, freq):
+    """
+        Reshape the data from the files to an array of dataframes representing the days.
+        :param data: DataFrame of shape (None, 4), with columns (datetime, glucose, insulin, CHO)
+        :param ph: prediction horizon in minutes (e.g., 30)
+        :param freq: sampling frequency of the time-series (e.g., 5)
+        :return: array of n days, each being a DataFrame of shape (None, 5),
+        with columns (glucose, insulin, CHO, glucose_at_ph-1, glucose_at_ph)
+    """
+
     samples_per_day = day_len // freq
     ph_freq = ph // freq
-    hist_freq = hist // freq
     n_days = len(data.index) // samples_per_day
 
-    if params["dataset"] == "T1DMS":
-        # data reshaping to comply to the GLYFE benchmark, which is :
-        # we take data from the previous day to account for the length of the history
-        days = [
-            data.ix[(i + 1) * samples_per_day - ph_freq - hist_freq:(i + 2) * samples_per_day,
-            ["glucose", "insulin", "CHO"]].reset_index(drop=True) for i in range(len(data.index) // samples_per_day - 1)
-        ]
-    else:
-        # remove timestamps and split into days
-        days = [
-            data.ix[d * samples_per_day:(d + 1) * samples_per_day - 1, ["glucose", "insulin", "CHO"]].reset_index(
-                drop=True)
-            for d in range(n_days)
-        ]
+    # remove timestamps and split into days
+    days = [
+        data.ix[d * samples_per_day:(d + 1) * samples_per_day - 1, ["glucose", "insulin", "CHO"]].reset_index(
+            drop=True)
+        for d in range(n_days)
+    ]
 
     # for every day, compute the objective prediction, based on the prediction horizon
     def compute_y(day, ph):
@@ -42,10 +37,14 @@ def reshape_day(data, params):
     return days
 
 
-# @timeit
-def reshape_samples(data, params):
-    hist = params["hist"]
-    freq = params["freq"]
+def reshape_samples_with_history(data, hist, freq):
+    """
+        Final reshape of the input data to compute the samples accounting for the amount of history.
+        :param data: input data of shape (n_splits, n_days_per_split, None, 5)
+        :param hist: history in minutes (e.g., 180 - 3 hours)
+        :param freq: sampling frequency in minutes (e.g., 5)
+        :return: data of the shape (n_splits, None, 3 * hist / freq + 2) - days are collasped inside the split
+    """
     day_len_freq = len(data[0][0])
     hist_freq = hist // freq
 
@@ -60,20 +59,17 @@ def reshape_samples(data, params):
     for split in data:
         days = []
         for day in split:
-            # X = np.array([
-            #     day.ix[j: j + hist_freq - 1, ["glucose", "insulin", "CHO"]].values for j in
-            #     range(day_len_freq - hist_freq + 1)
-            # ])
-
+            # create the samples by adding the past values accounting for the amount of history
             X = np.array([
-                day.ix[j: j + day_len_freq - hist_freq + 1 - 1, ["glucose", "insulin", "CHO"]].values for j in
+                day.ix[j: j + day_len_freq - hist_freq - 1, ["glucose", "insulin", "CHO"]].values for j in
                 range(hist_freq)
             ])
+            # the for loop is done the other way around to speed up, but we need to transpose after
             X = np.rollaxis(X, 1, 0)
 
             X = np.reshape(X, (X.shape[0], -1))
-            y1 = day.ix[hist_freq - 1:, ["y_ph-1"]].values.reshape(-1, 1)
-            y2 = day.ix[hist_freq - 1:, ["y_ph"]].values.reshape(-1, 1)
+            y1 = day.ix[hist_freq:, ["y_ph-1"]].values.reshape(-1, 1)
+            y2 = day.ix[hist_freq:, ["y_ph"]].values.reshape(-1, 1)
 
             days.append(pd.DataFrame(data=np.c_[X, y1, y2], columns=columns))
         splits.append(pd.concat(days).reset_index(drop=True))

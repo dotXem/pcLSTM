@@ -1,58 +1,29 @@
+import sys
+import argparse
 import misc
 import os
 from preprocessing.preprocessing import preprocessing
 from postprocessing.postprocessing import postprocessing
-from models.ELM import ELM, params as ELM_params
+from tools.printd import printd
 import numpy as np
 from evaluation.results import Results
-
-dataset = "IDIAB"
-subject = "1"
-file = os.path.join("data", "dynavolt", dataset, dataset + "_subject" + subject + ".csv")
-
-freq = misc.freqs[dataset]
-
-params_preprocessing = {
-    "reshape_day": {
-        "ph": misc.ph,
-        "hist": misc.hist,
-        "dataset": dataset,
-        "freq": freq,
-    },
-    "split": {
-        "cv": misc.cv,
-    },
-    "filter": {
-        "cutoff": 6e-4 / freq,
-        "order": 4,
-        "fs": 1 / (60 * freq),
-    },
-    "normalize": {
-        "min": -1,
-        "max": -1,
-    },
-    "reshape_samples": {
-        "hist": misc.hist,
-        "freq": freq,
-    }
-}
+from pydoc import locate
+from tools.compute_subjects_list import compute_subjects_list
 
 
-def main():
-    """
-    #TODO write the description
-    :return:
-    """
+def main(dataset, subject, Model, params, ph, eval="valid", print=True, plot=False, save=True, excel_file=None):
+    printd(dataset, subject, Model.__name__)
+
+    file = os.path.join("data", "dynavolt", dataset, dataset + "_subject" + subject + ".csv")
 
     """ PREPROCESSING """
-    train_sets, valid_sets, test_sets, params = preprocessing(file, params_preprocessing)
+    train_sets, valid_sets, test_sets, norm_min, norm_max = preprocessing(file, misc.hist, ph, misc.freq, misc.cv)
 
     # TODO REMOVE - one split testing
-    split_number = 0
-    train_sets, valid_sets, test_sets = [train_sets[split_number]], [valid_sets[split_number]], [
-        test_sets[split_number]]
-    params["normalize"]["min"] = [params["normalize"]["min"][split_number]]
-    params["normalize"]["max"] = [params["normalize"]["max"][split_number]]
+    # split_number = 7
+    # train_sets, valid_sets, test_sets = [train_sets[split_number]], [valid_sets[split_number]], [
+    #     test_sets[split_number]]
+    # norm_min, norm_max = [norm_min[split_number]],[norm_max[split_number]]
 
     """ CROSS-VALIDATION """
     results = []
@@ -61,34 +32,59 @@ def main():
         valid_x, valid_y = valid.iloc[:, :-2], valid.iloc[:, -2:]
         test_x, test_y = test.iloc[:, :-2], test.iloc[:, -2:]
 
-        model = ELM(neurons=ELM_params["neurons"], l2=ELM_params["l2"])
-        model.fit(x=train_x, y=train_y)
+        model = Model(params)
+        if Model.__name__ in misc.nn_models:
+            model.fit(x_train=train_x, y_train=train_y, x_valid=valid_x, y_valid=valid_y)
+        else:
+            model.fit(x=train_x, y=train_y)
 
-        y_true, y_pred = model.predict(x=valid_x, y=valid_y)
+        if eval == "valid":
+            y_true, y_pred = model.predict(x=valid_x, y=valid_y)
+        elif eval == "test":
+            y_true, y_pred = model.predict(x=test_x, y=test_y)
         results.append(np.c_[y_true, y_pred])
 
     """ POST-PROCESSING """
     results = postprocessing(results.copy(),
                              hist=misc.hist,
                              ph=misc.ph,
-                             freq=freq,
-                             min=params["normalize"]["min"],
-                             max=params["normalize"]["max"],
-                             dataset=dataset)
+                             freq=misc.freq,
+                             min=norm_min,
+                             max=norm_max)
 
     """ EVALUATION """
-
-    res = Results(results, freq)
+    res = Results(Model.__name__, misc.ph, dataset, subject, misc.freq, results=np.array(results))
     metrics = res.get_results()
-    print(metrics)
-    res.plot()
-
-
-    pass
+    if print: printd(metrics)
+    if save: res.save()
+    if plot: res.plot()
+    if excel_file is not None: res.to_excel(params, len(res.results), file_name=excel_file)
 
 
 if __name__ == "__main__":
-    """
-    ArgParser with subject, model, ph
-    """
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--dataset", type=str)
+    parser.add_argument("--subject", type=str)
+    parser.add_argument("--model", type=str)
+    parser.add_argument("--ph", type=int)
+    parser.add_argument("--eval", type=str)
+    parser.add_argument("--excel", type=str)
+    parser.add_argument("--print", type=bool)
+    parser.add_argument("--plot", type=bool)
+    parser.add_argument("--save", type=bool)
+    args = parser.parse_args()
+
+    model_name = args.model if args.model is not None else sys.exit(-1)
+    ph = args.ph if args.ph is not None else 30
+    eval = args.eval if args.eval is not None else "valid"
+    excel = args.excel if args.excel is not None else None
+    print = args.print if args.print is not None else True
+    plot = args.plot if args.plot is not None else False
+    save = args.save if args.save is not None else False
+
+    Model = locate("models." + model_name + "." + model_name)
+    params = locate("models." + model_name + ".params")
+
+    datasets_subjects = compute_subjects_list(args.dataset, args.subject)
+    for dataset, subject in datasets_subjects:
+        main(dataset=dataset, subject=subject, Model=Model, params=params, ph=ph, eval=eval)
