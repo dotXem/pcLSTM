@@ -28,6 +28,10 @@ subject = "570"
 
 
 def grid_search():
+    """
+        Run a grid search for a given model, dataset and subject, following the hyperparameters grids defined above
+        :return: / prints the results of the grid search
+    """
     Model = locate("models." + model_name + "." + model_name)
     combinations = dict_cartesian_product(params_grid[model_name])
     params_l = [{x: vals[i] for i, x in enumerate(params_grid[model_name].copy())} for vals in combinations]
