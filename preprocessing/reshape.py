@@ -26,8 +26,8 @@ def reshape_day(data, ph, freq):
 
     # for every day, compute the objective prediction, based on the prediction horizon
     def compute_y(day, ph):
-        y1 = day.ix[ph - 1:len(day.index) - 1, "glucose"].copy().reset_index(drop=True)
-        y2 = day.ix[ph:, "glucose"].copy().reset_index(drop=True)
+        y1 = day.ix[ph - 1:len(day.index) - 2, "glucose"].copy().reset_index(drop=True)
+        y2 = day.ix[ph:len(day.index) - 1, "glucose"].copy().reset_index(drop=True)
         day_y = day.ix[:len(day.index) - ph - 1].copy().reset_index(drop=True)
         day_y["y_ph-1"], day_y["y_ph"] = y1, y2
         return day_y
@@ -61,15 +61,15 @@ def reshape_samples_with_history(data, hist, freq):
         for day in split:
             # create the samples by adding the past values accounting for the amount of history
             X = np.array([
-                day.ix[j: j + day_len_freq - hist_freq - 1, ["glucose", "insulin", "CHO"]].values for j in
+                day.ix[j: j + day_len_freq - hist_freq, ["glucose", "insulin", "CHO"]].values for j in
                 range(hist_freq)
             ])
             # the for loop is done the other way around to speed up, but we need to transpose after
             X = np.rollaxis(X, 1, 0)
 
             X = np.reshape(X, (X.shape[0], -1))
-            y1 = day.ix[hist_freq:, ["y_ph-1"]].values.reshape(-1, 1)
-            y2 = day.ix[hist_freq:, ["y_ph"]].values.reshape(-1, 1)
+            y1 = day.ix[hist_freq-1:, ["y_ph-1"]].values.reshape(-1, 1)
+            y2 = day.ix[hist_freq-1:, ["y_ph"]].values.reshape(-1, 1)
 
             days.append(pd.DataFrame(data=np.c_[X, y1, y2], columns=columns))
         splits.append(pd.concat(days).reset_index(drop=True))

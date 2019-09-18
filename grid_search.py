@@ -21,10 +21,10 @@ params_grid = {
     },
 }
 
-model_name = "SVR"
+model_name = "GP"
 
-dataset = "Ohio"
-subject = "570"
+dataset = "IDIAB"
+subject = "1"
 
 
 def grid_search():

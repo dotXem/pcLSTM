@@ -1,6 +1,6 @@
 import pandas as pd
 from preprocessing.reshape import reshape_day, reshape_samples_with_history
-from preprocessing.scaling import normalize
+from preprocessing.scaling import normalize, standardize
 from preprocessing.cross_validation import split
 
 
@@ -27,14 +27,14 @@ def preprocessing(file, hist, ph, freq, cv):
     # split the days into training, validation and testing sets
     train, valid, test = split(data, cv)
 
-    # normalization of the data
-    train, min, max = normalize(train)
-    valid, _, _ = normalize(valid, min, max)
-    test, _, _ = normalize(test, min, max)
-
     # generate the samples (with past values as input)
     train = reshape_samples_with_history(train, hist, freq)
     valid = reshape_samples_with_history(valid, hist, freq)
     test = reshape_samples_with_history(test, hist, freq)
 
-    return train, valid, test, min, max
+    # standardize the data
+    train, mean, std = standardize(train)
+    valid, _, _ = standardize(valid, mean, std)
+    test, _, _ = standardize(test, mean, std)
+
+    return train, valid, test, mean, std

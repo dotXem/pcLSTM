@@ -11,6 +11,6 @@ def reshape_day(results, hist, ph, freq):
         :param freq: sampling frequency in minutes (e.g., 5)
         :return: reshape results of shape (n_days, None, 2)
     """
-    preds_per_day = day_len // freq - ph // freq - hist // freq
+    preds_per_day = day_len // freq - ph // freq - hist // freq + 1
 
     return np.reshape(results, (-1, preds_per_day, 2))

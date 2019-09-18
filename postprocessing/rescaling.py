@@ -1,10 +1,13 @@
-def rescaling(results, min, max):
+def rescaling(results, mean, std):
     """
-        Scale back the results that have previously been mix-max-normalized.
+        Scale back the results that have previously been standardized.
         :param results: results of shape (None, 2)
-        :param min: vector of max values (one per initial feature)
-        :param max: vector of max values (one per initial feature)
+        :param mean: vector of mean values (one per initial feature)
+        :param std: vector of std values (one per initial feature)
         :return: rescaled results
     """
-    min_y, max_y = min[-1], max[-1]
-    return (results + 1) / 2 * (max_y - min_y) + min_y
+    min_y, max_y = mean[-1], std[-1]
+
+    return results * max_y + min_y
+
+

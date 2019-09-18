@@ -19,12 +19,6 @@ def main(dataset, subject, Model, params, ph, eval="valid", print=True, plot=Fal
     """ PREPROCESSING """
     train_sets, valid_sets, test_sets, norm_min, norm_max = preprocessing(file, misc.hist, ph, misc.freq, misc.cv)
 
-    # TODO REMOVE - one split testing
-    # split_number = 7
-    # train_sets, valid_sets, test_sets = [train_sets[split_number]], [valid_sets[split_number]], [
-    #     test_sets[split_number]]
-    # norm_min, norm_max = [norm_min[split_number]],[norm_max[split_number]]
-
     """ CROSS-VALIDATION """
     results = []
     for i, [train, valid, test] in enumerate(zip(train_sets, valid_sets, test_sets)):
