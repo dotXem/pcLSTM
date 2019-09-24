@@ -14,7 +14,7 @@ from tools.compute_subjects_list import compute_subjects_list
 def main(dataset, subject, Model, params, ph, eval="valid", print=True, plot=False, save=True, excel_file=None):
     printd(dataset, subject, Model.__name__)
 
-    file = os.path.join("data", "dynavolt", dataset, dataset + "_subject" + subject + ".csv")
+    file = os.path.join(misc.path, misc.data_folder_path, dataset, dataset + "_subject" + subject + ".csv")
 
     """ PREPROCESSING """
     train_sets, valid_sets, test_sets, norm_min, norm_max = preprocessing(file, misc.hist, ph, misc.freq, misc.cv)
@@ -38,6 +38,8 @@ def main(dataset, subject, Model, params, ph, eval="valid", print=True, plot=Fal
             y_true, y_pred = model.predict(x=test_x, y=test_y)
         results.append(np.c_[y_true, y_pred])
 
+        break
+
     """ POST-PROCESSING """
     results = postprocessing(results.copy(),
                              hist=misc.hist,
@@ -51,7 +53,7 @@ def main(dataset, subject, Model, params, ph, eval="valid", print=True, plot=Fal
     metrics = res.get_results()
     if print: printd(metrics)
     if save: res.save()
-    if plot: res.plot()
+    if plot: res.plot(0,3)
     if excel_file is not None: res.to_excel(params, len(res.results), file_name=excel_file)
 
 
@@ -81,4 +83,4 @@ if __name__ == "__main__":
 
     datasets_subjects = compute_subjects_list(args.dataset, args.subject)
     for dataset, subject in datasets_subjects:
-        main(dataset=dataset, subject=subject, Model=Model, params=params, ph=ph, eval=eval)
+        main(dataset=dataset, subject=subject, Model=Model, params=params, ph=ph, eval=eval, plot=plot, excel_file=excel)

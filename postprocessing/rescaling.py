@@ -9,5 +9,3 @@ def rescaling(results, mean, std):
     min_y, max_y = mean[-1], std[-1]
 
     return results * max_y + min_y
-
-

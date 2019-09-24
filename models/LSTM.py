@@ -18,10 +18,10 @@ params = {
     "loss": "MSE",
     "dropout": 0.0,
     "l2": 1e-4,
-    "epochs": 500,
-    "batch_size": 50,
-    "lr": 5e-5,  # learning rate
-    "patience": 7,
+    "epochs": 1000,
+    "batch_size": 10,
+    "lr": 5e-3,  # learning rate
+    "patience": 12,
 }
 
 

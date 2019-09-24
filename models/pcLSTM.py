@@ -19,13 +19,13 @@ params = {
     "loss": "pcMSE",
     "dropout": 0.0,
     "l2": 1e-4,
-    "epochs": 500,
-    "batch_size": 50,
-    "lr": 5e-5,
-    "patience": 7,
+    "epochs": 1000,
+    "batch_size": 10,
+    "lr": 5e-3,
+    "patience": 12,
 
     # coherence factor
-    "c": 3e1,  # 1e0,
+    "c": 0.0, #3e1,  # 1e0,
 }
 
 
@@ -61,9 +61,6 @@ class pcLSTM():
         self.l2 = params["l2"]
         self.patience = params["patience"]
         self.c = params["c"]
-        self.momentum = params["momentum"]
-
-        self.scheduler_params = {"factor": params["scheduler_factor"], "patience": params["scheduler_patience"]}
 
         if params["loss"] == "pcMSE":
             self.loss = pcMSE(self.c)
@@ -123,6 +120,7 @@ class torchpcLSTM(nn.Module):
         self.lstm = nn.LSTM(self.n_in, self.n_neurons, self.n_hidden, dropout=self.dropout, batch_first=True)
 
         self.linear = nn.Linear(self.n_neurons, 1)
+
 
     def forward(self, xb):
         xb, _ = self.lstm(xb)

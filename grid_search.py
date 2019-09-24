@@ -7,7 +7,7 @@ from tools.printd import printd
 params_grid = {
     "ELM": {
         "neurons": [1e3, 1e4, 1e5, 2.5e5, 5e5],
-        "l2": [2.5e2, 5e2, 7.5e2,1e3]
+        "l2": [1e0, 1e1, 1e2, 5e2, 1e3]
     },
     "GP": {
         "alpha": [1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1e0, 1e1, 1e2, 1e3],
@@ -21,10 +21,9 @@ params_grid = {
     },
 }
 
-model_name = "GP"
-
+model_name = "ELM"
 dataset = "IDIAB"
-subject = "1"
+subject = "3"
 
 
 def grid_search():
@@ -46,8 +45,7 @@ def grid_search():
              eval="valid",
              print=True,
              plot=False,
-             save=False,
-             excel_file="gs.xlsx")
+             save=False)
 
 
 if __name__ == "__main__":

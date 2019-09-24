@@ -35,8 +35,8 @@ def smooth_results(model_name, ph, dataset, subject, smoothing_technique, save=F
 
         :param model_name: name of the model (e.g., "ELM")
         :param ph: prediction horizon in minutes (e.g., 30)
-        :param dataset: name of the dataset, can be "all"
-        :param subject: name of the subject, can be "all"
+        :param dataset: name of the dataset
+        :param subject: name of the subject
         :param smoothing_technique: either "moving_average"/"ma" or "exponential_smoothing"/"es"
         :param save: boolean activating (or not) the saving of the results
         :param print: boolean activating (or not) the printing of the results

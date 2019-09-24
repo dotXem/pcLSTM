@@ -1,11 +1,9 @@
 legacy/
 figures/
-tmp/
 venv/
 .idea/
 __pycache__/
 data/
-figures/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

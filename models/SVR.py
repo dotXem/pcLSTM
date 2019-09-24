@@ -2,9 +2,9 @@ from sklearn.svm import SVR as skSVR
 from tools.timeit import timeit
 
 params = {
-    "C": 1e0,
-    "epsilon": 1e-2,
-    "gamma": 1e-2,
+    "C": 5e1,
+    "epsilon":1e-1,
+    "gamma": 0.5e-3,
     "shrinking": True,
 }
 

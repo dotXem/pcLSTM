@@ -1,6 +1,6 @@
 import pandas as pd
 from preprocessing.reshape import reshape_day, reshape_samples_with_history
-from preprocessing.scaling import normalize, standardize
+from preprocessing.scaling import standardize
 from preprocessing.cross_validation import split
 
 
