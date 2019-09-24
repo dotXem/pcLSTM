@@ -24,8 +24,8 @@ params = {
     "lr": 5e-3,
     "patience": 12,
 
-    # coherence factor
-    "c": 0.0, #3e1,  # 1e0,
+    "c": 2e0,  # coherence factor
+
 }
 
 
@@ -120,7 +120,6 @@ class torchpcLSTM(nn.Module):
         self.lstm = nn.LSTM(self.n_in, self.n_neurons, self.n_hidden, dropout=self.dropout, batch_first=True)
 
         self.linear = nn.Linear(self.n_neurons, 1)
-
 
     def forward(self, xb):
         xb, _ = self.lstm(xb)
