@@ -2,7 +2,6 @@ legacy/
 figures/
 venv/
 .idea/
-__pycache__/
 data/
 results/
 
